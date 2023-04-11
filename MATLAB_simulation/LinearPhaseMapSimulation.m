@@ -5,22 +5,22 @@ DebugShow=false;
 L=[4 4];
 AcqPoint=[256,256];
 N=[AcqPoint(1),AcqPoint(2)*16];
-YdireInhomoCoef=0*[0.001,0.001,0.00,0.00]*L(2);% constant, firstorder,second order;
+YdireInhomoCoef=0*[0.001,0.001,0.00,0.00]*L(2);
 nseg=1;
 NumShots=nseg;
 spectrum=00;
-sw=250000; % unit Hz
+sw=250000;
 OneShotNum=AcqPoint(2)/nseg;
 ChirpRvalue=120;
 tblip=128e-6;
-gammaHz=4.2574e+3 ; % [Hz/G]
+gammaHz=4.2574e+3;
 matrix_size=[AcqPoint,1];
 xScale=linspace(-L(1)/2,L(1)/2,N(1));
 yScale=linspace(-L(2)/2,L(2)/2,N(2));
 yScale1=linspace(-L(2)/2,L(2)/2,AcqPoint(2));
 Ta = (AcqPoint(1)/sw+tblip)*OneShotNum;
-ChripTP=Ta/2; % unit second
-aSign = -1 ;                                                                                                               
+ChripTP=Ta/2;
+aSign=-1;                                                                                                               
 ProcparStruct.np=AcqPoint(1);
 ProcparStruct.ne=1;
 ProcparStruct.nv=AcqPoint(2);
@@ -34,21 +34,21 @@ ProcparStruct.ppe=0;
 ProcparStruct.Tp=ChripTP;
 ProcparStruct.Gchip=ChirpRvalue/ChripTP/(L(2))/gammaHz;
 ProcparStruct.ppe=0;
-rfwdth = ProcparStruct.Tp ; % [sec]
+rfwdth = ProcparStruct.Tp;
 GPEe=ProcparStruct.Gchip;
 alfa = +aSign * 2*pi * gammaHz * GPEe * rfwdth / (ProcparStruct.lpe) ;
 [M r offsets] = spin_system(L,N,spectrum);
-imap.a1 = [0 0]; % in Hz/m
-imap.a2 = [0. 0.]; % in Hz/(m^2)
-imap.ar = 0; % in Hz
+imap.a1 = [0 0]; 
+imap.a2 = [0. 0.]; 
+imap.ar = 0;
 offsets = inhomogeneise(offsets,r,N,imap);
 M(:,2) = 1;
 M(:,3) = 0;
 
-H=load('F:\Matlab项目\Dissertation\Dataset\HCP_brain.mat');
+H=load('HCP_brain.mat');
 H=cell2mat(struct2cell(H));
 
-slicenum=900;
+slicenum=2000;
 nrow=AcqPoint(2);
 ncol=AcqPoint(1);
 GoodImageAll=zeros(slicenum,nrow,ncol);
@@ -56,12 +56,12 @@ RoFFTAll=zeros(slicenum,nrow,ncol);
 PhaseMapAll=zeros(slicenum,nrow/2,ncol);
 
 Num=1;
-for m=1:9  
+for m=1:20  
     for i=41:140    
         Hb=H(i,:,:);     
         Hb=reshape(Hb,[256,256])'; 
         Hb=imresize(Hb,N);    
-        M(:,2) = M(:,2) .* Hb(:);
+        M(:,2) = M(:,2).* Hb(:);
         SpinDensity=Hb;   
         x=linspace(-L(1)/2,L(1)/2,N(1));
         xacq= -AcqPoint(1)/2*1/L(1):1/L(1):(AcqPoint(1)/2-1)*1/L(1);
@@ -81,7 +81,7 @@ for m=1:9
         GoodImage=zeros([AcqPoint(2),AcqPoint(1)]);
         for k=1:nseg
             p=0*rand(1,7);
-            MotionImag=SpinDensity;%.*MotionPhaseMap        
+            MotionImag=SpinDensity;        
             SegRandom=0.00*L(2)/100*rand(1,1);
             Tempyacq=(-L(2)/2+(k-1)*L(2)/(AcqPoint(2))+SegRandom): L(2)/(AcqPoint(2)/nseg):((-L(2)/2+(k-1)*L(2)/(AcqPoint(2))+SegRandom)+(AcqPoint(2)/nseg-1)*(L(2)/(AcqPoint(2)/nseg)));        
             B0y=YdireInhomoCoef(1)*y.^0+YdireInhomoCoef(2)*y.^1+YdireInhomoCoef(3)*y.^2+YdireInhomoCoef(4)*y.^3;
@@ -102,19 +102,9 @@ for m=1:9
             Imeven=Img(2:2:end,:);
             if(mod(nseg,2)==1)
                 if(mod(k,2)==1)
-                    %方式1
-                    EvenOddLinear(1)
-                    EvenOddConstant(1)
                     Imeven=Imeven.*(ones(AcqPoint(2)/2/nseg,1)*exp(1i*2*pi*(EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1))));                    
                     map=angle(ones(AcqPoint(2)/2/nseg,1)*exp(1i*2*pi*(EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1))));
-%                     %方式2
-%                     map = ones(AcqPoint(2)/2/nseg,1)*(2*pi*EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1));                
-%                     emap = cos(map)+1i*sin(map);
-%                     Imeven = Imeven.*emap;
-                    
-                    figure(777);imagesc(abs(map));
-                    PhaseMapAll(Num,:,:)=map;
-                    
+                    PhaseMapAll(Num,:,:)=map;                    
                     Img(2:2:end,:)=Imeven;
                 else
                     Imodd=Imodd.*(ones(AcqPoint(2)/2/nseg,1)*exp(1i*(EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1))));
@@ -140,8 +130,8 @@ for m=1:9
         GchirpUnitGauss=ProcparStruct.Gchip;
         FovSPen=ProcparStruct.lpe;
         ChripTP=ProcparStruct.Tp;
-        rfwdth = ChripTP ; % [sec]
-        [InvAWhole,tmpAFinal]=calcInvA(alfa,L(2),size(Finalryxacq,1),0,-aSign,0,0.9);%ShiftPE is set to 0,as Amir has done it?
+        rfwdth = ChripTP;
+        [InvAWhole,tmpAFinal]=calcInvA(alfa,L(2),size(Finalryxacq,1),0,-aSign,0,0.9);
         FinalryxacqROFFT=FFTKSpace2XSpace(Finalryxacq,2);
         FinalryxacqROFFT=FinalryxacqROFFT/max(abs(FinalryxacqROFFT(:)))*100;
         GoodImage=GoodImage/max(abs(GoodImage(:)))*100;
@@ -155,7 +145,6 @@ for m=1:9
         tmpAFinalAll=tmpAFinal;
         tmpInvAZHalfOddAll=tmpInvAZHalfOdd;
         tmpInvAZHalfEvenAll=tmpInvAZHalfEven;
-
 
         disp([num2str(Num) ' is ok']);
         Num=Num+1;    
