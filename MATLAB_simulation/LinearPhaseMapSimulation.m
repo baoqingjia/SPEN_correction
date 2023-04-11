@@ -45,7 +45,7 @@ offsets = inhomogeneise(offsets,r,N,imap);
 M(:,2) = 1;
 M(:,3) = 0;
 
-H=load('F:\Matlab项目\Dissertation\Dataset\HCP_brain.mat');
+H=load('F:\Matlab椤圭洰\Dissertation\Dataset\HCP_brain.mat');
 H=cell2mat(struct2cell(H));
 
 slicenum=900;
@@ -102,12 +102,12 @@ for m=1:9
             Imeven=Img(2:2:end,:);
             if(mod(nseg,2)==1)
                 if(mod(k,2)==1)
-                    %方式1
+                    %鏂瑰紡1
                     EvenOddLinear(1)
                     EvenOddConstant(1)
                     Imeven=Imeven.*(ones(AcqPoint(2)/2/nseg,1)*exp(1i*2*pi*(EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1))));                    
                     map=angle(ones(AcqPoint(2)/2/nseg,1)*exp(1i*2*pi*(EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1))));
-%                     %方式2
+%                     %鏂瑰紡2
 %                     map = ones(AcqPoint(2)/2/nseg,1)*(2*pi*EvenOddLinear(1)*linspace(-L(1)/2,L(1)/2,AcqPoint(1))+EvenOddConstant(1));                
 %                     emap = cos(map)+1i*sin(map);
 %                     Imeven = Imeven.*emap;
@@ -146,8 +146,8 @@ for m=1:9
         FinalryxacqROFFT=FinalryxacqROFFT/max(abs(FinalryxacqROFFT(:)))*100;
         GoodImage=GoodImage/max(abs(GoodImage(:)))*100;
         ky1RelativePos=0;
-        [tmpInvAZHalfOdd,tmpAFinalOdd]=calcInvA(alfa,L(2),size(Finalryxacq,1)/2,0,-aSign,ky1RelativePos,0.9);%ShiftPE is set to 0,as Amir has done it?
-        [tmpInvAZHalfEven,tmpAFinalEven]=calcInvA(alfa,L(2),size(Finalryxacq,1)/2,0,-aSign,ky1RelativePos+0.5,0.9);%ShiftPE is set to 0,as Amir has done it?
+        [tmpInvAZHalfOdd,tmpAFinalOdd]=calcInvA(alfa,L(2),size(Finalryxacq,1)/2,0,-aSign,ky1RelativePos,0.9);
+        [tmpInvAZHalfEven,tmpAFinalEven]=calcInvA(alfa,L(2),size(Finalryxacq,1)/2,0,-aSign,ky1RelativePos+0.5,0.9);
 
         GoodImageAll(Num,:,:)=GoodImage;
         RoFFTAll(Num,:,:)=FinalryxacqROFFT;
@@ -155,30 +155,18 @@ for m=1:9
         tmpAFinalAll=tmpAFinal;
         tmpInvAZHalfOddAll=tmpInvAZHalfOdd;
         tmpInvAZHalfEvenAll=tmpInvAZHalfEven;
-        
-%         %若想展示图像必须先在172行end前打断点(否则内存会卡爆)!!!
-%         figure(888);
-%         subplot(221);imagesc(abs(GoodImage));colormap gray;
-%         subplot(222);imagesc(abs(FinalryxacqROFFT));colormap gray;
-%         subplot(223);imagesc(abs(MultMatTensor(InvAWhole,GoodImage)));colormap gray;
-%         subplot(224);imagesc(abs(MultMatTensor(InvAWhole,FinalryxacqROFFT)));colormap gray;        
-%         figure(999);
-%         subplot(121);imagesc(abs(InvAWhole));colormap jet;
-%         subplot(122);imagesc(abs(tmpAFinal));colormap jet; 
-%        
-%         %用于实时校正单张仿真数据，显示校正结果图像
-%         SRdata=ProcessSimulateSPENMultiShot_20170113(Finalryxacq,GchirpUnitGauss,FovSPen,ChripTP,nseg);
+
 
         disp([num2str(Num) ' is ok']);
         Num=Num+1;    
     end   
 end
 
-AWhole = InvAWholeAll;  %InvAWhole矩阵能将低分辨率图像解码为高分辨率图像
-AFinal = tmpAFinalAll;  %tmpAFinal矩阵能将高分辨率图像编码为低分辨率图像
-AEven = tmpInvAZHalfEvenAll;  %tmpInvAZHalfEven矩阵将低分辨率偶回波图像解码为高分辨率图像
-AOdd = tmpInvAZHalfOddAll;  %tmpInvAZHalfOdd矩阵将低分辨率奇回波图像解码为高分辨率图像
-Good = GoodImageAll;  %相位无失真的低分辨率时空编码图像
-Dis = RoFFTAll;  %相位失真的低分辨率时空编码图像
+AWhole = InvAWholeAll;  
+AFinal = tmpAFinalAll; 
+AEven = tmpInvAZHalfEvenAll; 
+AOdd = tmpInvAZHalfOddAll; 
+Good = GoodImageAll; 
+Dis = RoFFTAll; 
 Map = PhaseMapAll;
 save('LinearMap_0.3_0.5.mat','Good','Dis','AWhole','AFinal','AEven','AOdd','Map');
